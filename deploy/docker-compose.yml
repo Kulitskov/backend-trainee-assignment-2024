@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    restart: always
+    command: -c 'max_connections=500'
+    environment:
+      POSTGRES_USER: avito
+      POSTGRES_PASSWORD: avito
+      POSTGRES_DB: avito_banner_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../pg_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: avito@example.com
+      PGADMIN_DEFAULT_PASSWORD: avito
+    ports:
+      - "5050:80"
+    volumes:
+      - ../pgadmin_data:/var/lib/pgadmin
+
+  memcached:
+    image: memcached:latest
+    restart: always
+    ports:
+      - "11211:11211"
+
+  avito-banner:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+      - memcached
+    ports:
+      - "8080:8080"
+volumes:
+  pg_data:
+  pgadmin_data:
